@@ -53,6 +53,8 @@ public class SiddhiAppDeployer {
             if (resourceResponse != null) {
                 if (resourceResponse.status() == 201) {
                     String locationHeader = resourceResponse.headers().getOrDefault("Location", null).toString();
+                    LOG.info("Location Header " +locationHeader);
+                    LOG.info("Return Value " +locationHeader.substring(locationHeader.lastIndexOf('/') + 1));
                     return (locationHeader != null && !locationHeader.isEmpty())
                             ? locationHeader.substring(locationHeader.lastIndexOf('/') + 1) : null;
                 } else if (resourceResponse.status() == 409) {
@@ -63,6 +65,7 @@ public class SiddhiAppDeployer {
                             node.getHttpsInterface().getUsername(), node.getHttpsInterface().getPassword())
                             .putSiddhiApp(siddhiQuery.getApp());
                     if (resourceResponse.status() == 200) {
+                        LOG.info("siddhiQuery.getAppName() "+siddhiQuery.getAppName());
                         return siddhiQuery.getAppName();
                     } else {
                         return null;
@@ -97,6 +100,9 @@ public class SiddhiAppDeployer {
                                     String.valueOf(node.getHttpsInterface().getPort())),
                     node.getHttpsInterface().getUsername(), node.getHttpsInterface().getPassword())
                     .deleteSiddhiApp(siddhiAppName);
+            LOG.info("Response Code - "+resourceResponse.status());
+            LOG.info("Response Header - "+resourceResponse.headers());
+            LOG.info("Response Body - "+resourceResponse.body());
             return resourceResponse.status() == 200;
         } catch (feign.FeignException e) {
             if (LOG.isDebugEnabled()) {

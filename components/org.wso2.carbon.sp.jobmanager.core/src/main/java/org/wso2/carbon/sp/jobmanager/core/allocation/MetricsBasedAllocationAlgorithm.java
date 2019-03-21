@@ -32,19 +32,20 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
     public  Map<ResourceNode, List<PartialSiddhiApp>>output_map = new HashMap<>();
     public  Map<String , Double>latency_map= new HashMap<>();
     public boolean check = false;
-    Connection connection = null;
-    Statement statement;
+    //Connection connection = null;
+    //Statement statement;
     int metricCounter;
 
 
-    public Statement dbConnector(){
+    public Connection dbConnector(){
         try {
             String datasourceName = ServiceDataHolder.getDeploymentConfig().getDatasource();
             DataSourceService dataSourceService = ServiceDataHolder.getDataSourceService();
             DataSource datasource = (HikariDataSource) dataSourceService.getDataSource(datasourceName);
-            connection = datasource.getConnection();
-            Statement statement = connection.createStatement();
-            return statement;
+            Connection connection = datasource.getConnection();
+           // Statement statement = connection.createStatement();
+           // return statement;
+            return  connection;
         } catch (SQLException e) {
             logger.error("SQL error : " + e.getMessage());
         } catch (DataSourceException e) {
@@ -69,7 +70,13 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
     public void retrieveData(DistributedSiddhiQuery distributedSiddhiQuery,
                                                    LinkedList<PartialSiddhiApp> partailSiddhiApps) {
         List<SiddhiAppHolder> appsToDeploy = getSiddhiAppHolders(distributedSiddhiQuery);
-        statement=dbConnector();
+        Connection connection=dbConnector();
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+        } catch (SQLException e) {
+            logger.error("Error Creating the Connection",e);
+        }
         ResultSet resultSet ;
         try {
             for (SiddhiAppHolder appHolder : appsToDeploy) {
@@ -91,18 +98,19 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
                         executionGroup +" and parallel=" + parallelInstance +
                         " order by iijtimestamp desc limit 1 " ;
                 resultSet = statement.executeQuery(query);
+
                 logger.info("Query "+ query);
 
                 if ( resultSet.isBeforeFirst()){     //Check the corresponding partial siddhi app is having the metrics
                     logger.info("Matrics details are found for the partial Siddhi App");
                     while(resultSet.next()) {
                         double latency = resultSet.getDouble("m7");
-                        logger.info("latency : " + latency);
+                        logger.info("latency from DB : " + latency);
                         latency_map.put(appHolder.getAppName() , latency);
                         double processCPU = resultSet.getDouble("m16");
-                        logger.info("process CPU : " + processCPU);
+                        logger.info("process CPU from DB: " + processCPU);
                         partailSiddhiApps.add(new PartialSiddhiApp(processCPU, (1 / latency), appHolder.getAppName()));
-                        logger.info(appHolder.getAppName()+ " created with reciprocal of latency : " + (1/latency) +
+                        logger.info(appHolder.getAppName()+ " created with DB reciprocal of latency : " + (1/latency) +
                                 " and processCPU : " + processCPU + "\n");
                     }
                 } else {
@@ -117,7 +125,11 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
                     logger.info(appHolder.getAppName()+ " created with reciprocal of latency : " + 0.0 +
                                 " and processCPU : " + processCPU + "\n");
                 }
+                resultSet.close();
+
             }
+            statement.close();
+            connection.close();
 
             if ( (metricCounter+2 ) >  appsToDeploy.size()){
                 logger.error("Metrics are not available for required number of Partial siddhi apps");
@@ -127,13 +139,20 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
 
         } catch (SQLException e) {
             logger.error(e);
+
         }
     }
 
     public void evalauteScheduling (DistributedSiddhiQuery distributedSiddhiQuery){
         if (check){
             List<SiddhiAppHolder> appsToDeploy = getSiddhiAppHolders(distributedSiddhiQuery);
-            statement=dbConnector();
+            Connection connection = dbConnector();
+            Statement statement = null;
+            try {
+                statement = connection.createStatement();
+            } catch (SQLException e) {
+                logger.error("Error Creating the Connection",e);
+            }
             ResultSet resultSet ;
             double point =0;
             try {
@@ -170,7 +189,11 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
                             }
                         }
                     }
+
+                    resultSet.close();
                 }
+                statement.close();
+                connection.close();
                 if (point > 0){
                     //keep this set up.
 
@@ -272,6 +295,7 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
                     MultipleKnapsack result = multipleKnapsack.neighborSearch(multipleKnapsack);
                     logger.info("Results after " + "iteration "+ (i+1) + "\n");
                     logger.info("-----------------------------------\n");
+                    output_map.clear();
                     multipleKnapsack.updatemap(output_map);
                     partialSiddhiApps = result.printResult(false);
                     logger.info("partialSiddhiappsize : " + partialSiddhiApps.size());
@@ -304,7 +328,18 @@ public class MetricsBasedAllocationAlgorithm  implements ResourceAllocationAlgor
                     }
 
                     MultipleKnapsack result = multipleKnapsack.neighborSearch(multipleKnapsack);
+                    //output_map.clear();
                     multipleKnapsack.updatemap(output_map);
+
+                    output_map.forEach((key, value) -> {
+
+                        logger.info("key: "+ key);
+
+                        for (int siddhiApp = 0;  siddhiApp<  value.size(); siddhiApp++) {
+                            logger.info("Value "+ value.get(siddhiApp).getName());
+                        }
+
+                    });
                     result.printResult(true);
                     //output_map = multipleKnapsack.getMap();
 

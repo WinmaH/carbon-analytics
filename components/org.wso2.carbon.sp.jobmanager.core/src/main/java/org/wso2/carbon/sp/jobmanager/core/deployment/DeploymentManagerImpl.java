@@ -400,19 +400,19 @@ public class DeploymentManagerImpl extends  Thread implements DeploymentManager,
                 resourceNode = metricsBasedAllocationAlgorithm.getNextResourceNode(nodeMap,
                         ServiceDataHolder.getDeploymentConfig().getMinResourceCount() , siddhiQuery);
 
-                try {
-                    String query = "INSERT into schedulingdetails (timestamp,partialSiddhiApp," +
-                            "deployedNode,algorithm)  values (" +
-                            System.currentTimeMillis() + "," +
-                            "\'"+ siddhiQuery.getAppName() + "\'" +  "," +
-                            "\'" + resourceNode.getId() + "\'" + "," +
-                            "\'" + "MetricsBasedAllocationAlgorithm" + "\'" + ")";
-                    statement.executeUpdate(query);
-                    log.info("data pushed to table");
-
-                } catch(SQLException e) {
-                    log.error("Error in inserting query . " + e.getMessage());
-                }
+//                try {
+//                    String query = "INSERT into schedulingdetails (timestamp,partialSiddhiApp," +
+//                            "deployedNode,algorithm)  values (" +
+//                            System.currentTimeMillis() + "," +
+//                            "\'"+ siddhiQuery.getAppName() + "\'" +  "," +
+//                            "\'" + resourceNode.getId() + "\'" + "," +
+//                            "\'" + "MetricsBasedAllocationAlgorithm" + "\'" + ")";
+//                    statement.executeUpdate(query);
+//                    log.info("data pushed to table");
+//
+//                } catch(SQLException e) {
+//                    log.error("Error in inserting query . " + e.getMessage());
+//                }
             } else {
                 log.info("Executing Standard ResourceAllocationAlgorithm");
                 resourceNode = resourceAllocationAlgorithm.getNextResourceNode(nodeMap,
