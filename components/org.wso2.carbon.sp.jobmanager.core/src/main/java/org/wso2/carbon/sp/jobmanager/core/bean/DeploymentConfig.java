@@ -46,7 +46,7 @@ public class DeploymentConfig implements Serializable {
     private String dbPassword;
     @Element(description = "Enable Metricscheduling or not", required = true)
     private boolean isMetricScheduling = true;
-    private int waitingTime = 15;
+    private int waitingTime = 4;
 
     /**
      * @deprecated zooKeeperURLs is moved to {@link ZooKeeperConfig} bean

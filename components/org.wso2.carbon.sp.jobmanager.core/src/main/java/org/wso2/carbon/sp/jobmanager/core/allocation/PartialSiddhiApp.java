@@ -4,7 +4,9 @@ public class PartialSiddhiApp {
 
     private double cpuUsage;
     private double latency;
+    private double throughput;
     private double latencyBycpuUsage;
+    private int eventCount;
     private String name;
 
     /**
@@ -13,9 +15,11 @@ public class PartialSiddhiApp {
      * @param latency
      * @param name
      */
-    public PartialSiddhiApp (double cpuUsage, double latency, String name) {
+    public PartialSiddhiApp (double cpuUsage, double latency, double throughput, int eventCount, String name) {
         this.cpuUsage = cpuUsage;
         this.latency = latency;
+        this.throughput = throughput;
+        this.eventCount = eventCount;
         latencyBycpuUsage = (double) latency / (double) cpuUsage;
         this.name = name;
     }
@@ -50,5 +54,29 @@ public class PartialSiddhiApp {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Method that gets the throughput an item has.
+     * @return
+     */
+    public double getThroughput() {
+        return throughput;
+    }
+
+    /**
+     * Method that sets the throughput of an item has.
+     * @return
+     */
+    public void setThroughput(double throughput) {
+        this.throughput = throughput;
+    }
+
+    public int getEventCount() {
+        return eventCount;
+    }
+
+    public void setEventCount(int eventCount) {
+        this.eventCount = eventCount;
     }
 }
