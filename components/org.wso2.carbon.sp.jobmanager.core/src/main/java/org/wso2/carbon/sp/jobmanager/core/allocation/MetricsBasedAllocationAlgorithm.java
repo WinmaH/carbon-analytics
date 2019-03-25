@@ -187,83 +187,40 @@ public class MetricsBasedAllocationAlgorithm implements ResourceAllocationAlgori
         if (deploymentConfig != null && !resourceNodeMap.isEmpty()) {
             if (resourceNodeMap.size() >= minResourceCount) {
                 resourceIterator = resourceNodeMap.values().iterator();
+
                 MultipleKnapsack multipleKnapsack = new MultipleKnapsack();
 
                 LinkedList<PartialSiddhiApp> partialSiddhiApps = new LinkedList<>();
                 retrieveData(distributedSiddhiQuery, partialSiddhiApps);
 
-                logger.info("size of partial siddhi apps list at beginning : " + partialSiddhiApps.size());
+                logger.info("size of partialSiddhiApps list : " + partialSiddhiApps.size()+ "\n");
                 double TotalCPUUsagePartialSiddhi = 0.0;
-                // int TotalEventCount = 0;
 
                 for (int j = 0; j < partialSiddhiApps.size(); j++) {
                     TotalCPUUsagePartialSiddhi = TotalCPUUsagePartialSiddhi + partialSiddhiApps.get(j).getcpuUsage();
-                    //TotalEventCount = TotalEventCount +partialSiddhiApps.get(j).getEventCount();
                 }
+
                 logger.info("TotalCPUUsagePartialSiddhi : " + TotalCPUUsagePartialSiddhi + "\n");
-                //logger.info("Total Event Count : " + TotalEventCount+"....................");
 
-                //  int averageEventCount = (int)Math.round((double)TotalEventCount/partialSiddhiApps.size());
-                //logger.info("Average Event Count = " + averageEventCount+".........................");
-
-                LinkedList<PartialSiddhiApp> busyPartialSiddhiApps = new LinkedList<>();
-                LinkedList<PartialSiddhiApp> normalPartialSiddhiApps = new LinkedList<>();
-                double totalCPUUsagesOfNormalPartialSiddhiApps = 0.0;
-                double totalCPUUsagesOfBusyPartialSiddhiApps = 0.0;
-
-              /*  for(int j = 0; j < partialSiddhiApps.size(); j++){
-                    if(partialSiddhiApps.get(j).getEventCount() >= averageEventCount){
-                        busyPartialSiddhiApps.add(partialSiddhiApps.get(j));
-                        totalCPUUsagesOfBusyPartialSiddhiApps += partialSiddhiApps.get(j).getcpuUsage();
-                    }else{
-                        normalPartialSiddhiApps.add(partialSiddhiApps.get(j));
-                        totalCPUUsagesOfNormalPartialSiddhiApps += partialSiddhiApps.get(j).getcpuUsage();
-                    }
-                }*/
-
-                /*logger.info("Size of busy partial siddhi apps : " + busyPartialSiddhiApps.size());
-                logger.info("Size of normal partial siddhi apps : " + normalPartialSiddhiApps.size());*/
                 for (int p = 0; p < resourceNodeMap.size(); p++) {
                     ResourceNode resourceNode = (ResourceNode) resourceIterator.next();
                     multipleKnapsack.addKnapsack(new Knapsack((TotalCPUUsagePartialSiddhi / resourceNodeMap.size()),
                             resourceNode));
                     logger.info("created a knapsack of " + resourceNode);
-
                 }
-                logger.info("Starting branch and bound for normal partial siddhi apps....................");
+
                 for(PartialSiddhiApp app : partialSiddhiApps){
                     logger.info("CPU Usage of app===="+app.getcpuUsage()+".........................");
                 }
+
+                logger.info("Starting branch and bound knapsack for partial siddhi apps....................");
+
                 partialSiddhiApps = multipleKnapsack.executeBranchAndBoundKnapsack(partialSiddhiApps);
 
-              /*  for (int p = 0; p < multipleKnapsack.getKnapsacks().size(); p++) {
-                    multipleKnapsack.getKnapsacks().get(p)
-                            .setcapacity(totalCPUUsagesOfBusyPartialSiddhiApps/multipleKnapsack.getKnapsacks().size()
-                                    + multipleKnapsack.getKnapsacks().get(p).getcapacity());
-                }*/
+                logger.info("Remaining partial siddhi apps after completing the first round");
 
-                // logger.info("Starting branch and bound for busy partial siddhi apps.................................");
-                // busyPartialSiddhiApps = multipleKnapsack.executeBranchAndBoundKnapsack(busyPartialSiddhiApps);
-                //multipleKnapsack.calculatelatency();
-                //multipleKnapsack.updatemap(output_map);
-
-               /* partialSiddhiApps.clear();
-                partialSiddhiApps.addAll(normalPartialSiddhiApps);
-                partialSiddhiApps.addAll(busyPartialSiddhiApps);
-*/
-                if (partialSiddhiApps.size() > 0) {
-                    /*Collections.sort(partialSiddhiApps, new Comparator<PartialSiddhiApp>() {
-                        @Override
-                        public int compare(PartialSiddhiApp i1, PartialSiddhiApp i2) {
-                            if (i1.getcpuUsage() > i2.getcpuUsage()) {
-                                return -1;
-                            } else if (i2.getcpuUsage() > i1.getcpuUsage()) {
-                                return 1;
-                            } else {
-                                return 0;
-                            }
-                        }
-                    });*/
+                while (partialSiddhiApps.size() > 0) {
+                    logger.info("Size of partial siddhi apps for the next round");
                     multipleKnapsack.executeBranchAndBoundKnapsack(partialSiddhiApps);
                     multipleKnapsack.calculatelatency();
                     multipleKnapsack.updatemap(output_map);

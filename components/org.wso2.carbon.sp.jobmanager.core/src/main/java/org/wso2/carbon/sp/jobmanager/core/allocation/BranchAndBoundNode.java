@@ -4,13 +4,12 @@ import java.util.LinkedList;
 
 public class BranchAndBoundNode implements Comparable<BranchAndBoundNode> {
     private double upperBound;
-    private double throughputCost;
-    private int level;
+    private double throughputValue;
     private LinkedList<PartialSiddhiApp> partialSiddhiAppsOfNode;
 
     public BranchAndBoundNode(double upperBound, double throughputCost, LinkedList<PartialSiddhiApp> partialSiddhiAppsOfNode){
         this.setUpperBound(upperBound);
-        this.setThroughputCost(throughputCost);
+        this.setThroughputValue(throughputCost);
         this.setPartialSiddhiAppsOfNode(partialSiddhiAppsOfNode);
     }
 
@@ -28,12 +27,12 @@ public class BranchAndBoundNode implements Comparable<BranchAndBoundNode> {
         this.upperBound = upperBound;
     }
 
-    public double getThroughputCost() {
-        return throughputCost;
+    public double getThroughputValue() {
+        return throughputValue;
     }
 
-    public void setThroughputCost(double throughputCost) {
-        this.throughputCost = throughputCost;
+    public void setThroughputValue(double throughputValue) {
+        this.throughputValue = throughputValue;
     }
 
     public LinkedList<PartialSiddhiApp> getPartialSiddhiAppsOfNode() {
